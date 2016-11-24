@@ -90,7 +90,7 @@ Camera::Camera () {
   fovAngle = 45.0;
   aspectRatio = 1.0;
   nearPlane = 0.1;
-  farPlane = 10000.0;
+  farPlane = 10.0;
   
   spinning = 0;
   moving = 0;

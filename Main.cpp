@@ -29,7 +29,7 @@ using namespace std;
 
 static const unsigned int DEFAULT_SCREENWIDTH = 1024;
 static const unsigned int DEFAULT_SCREENHEIGHT = 768;
-static const string DEFAULT_MESH_FILE ("models/man.off");
+static const string DEFAULT_MESH_FILE ("../bunny.obj");
 
 static string appTitle ("Informatique Graphique & Realite Virtuelle - Travaux Pratiques - Shaders");
 static GLint window;
@@ -66,6 +66,14 @@ void init (const char * modelFilename) {
   glClearColor (0.0f, 0.0f, 0.0f, 1.0f); // Background color
   glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
 	
+  // add some lighting
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  GLfloat lightPosition[] = {0.0, 1.0, 1.0, 0.0};   // w=0.0
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
+  glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+glEnable ( GL_COLOR_MATERIAL );
   camera.resize (DEFAULT_SCREENWIDTH, DEFAULT_SCREENHEIGHT); // Setup the camera
   mesh.loadOBJ (modelFilename); // Load a mesh file
 
@@ -73,13 +81,23 @@ void init (const char * modelFilename) {
 
 void drawScene () {
   glBegin (GL_TRIANGLES);
+  Vertex hv = Vertex(Vec3f(0,0,0),Vec3f(0,0,0));
   for (unsigned int i = 0; i < mesh.T.size (); i++) 
     for (unsigned int j = 0; j < 3; j++) {
       const Vertex & v = mesh.V[mesh.T[i].v[j]];
+      if(v.p[1]<0){
+        glColor3f(1,0,0);
+      }
+      else{
+        glColor3f(1,1,1);
+      }
+
+
       glNormal3f (v.n[0], v.n[1], v.n[2]); // Specifies current normal vertex   
       glVertex3f (v.p[0], v.p[1], v.p[2]); // Emit a vertex (one triangle is emitted each time 3 vertices are emitted)
     }
-  glEnd (); 
+
+   glEnd (); 
 }
 
 void reshape(int w, int h) {
@@ -94,6 +112,24 @@ void display () {
   glutSwapBuffers (); 
 }
 
+Vec3f screenTo3D(int x, int y){
+  GLdouble modelview[16];
+  glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+
+  GLdouble projection[16];
+  glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+  GLint viewport[4];
+  glGetIntegerv(GL_VIEWPORT,viewport);
+
+  y = viewport[3] - y;
+  float z;
+  glReadPixels(x,y,1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
+
+  GLdouble objx,objy,objz;
+  gluUnProject(x, y, z, modelview, projection, viewport, &objx,&objy,&objz);
+  cout << "[Debug] Click point in the model: (" << objx << "," << objy << "," << objz<<")" << endl;
+}
 void key (unsigned char keyPressed, int x, int y) {
   switch (keyPressed) {
   case 'f':
@@ -123,10 +159,13 @@ void key (unsigned char keyPressed, int x, int y) {
 
 void mouse (int button, int state, int x, int y) {
   camera.handleMouseClickEvent (button, state, x, y);
+  screenTo3D(x,y);
+  
 }
 
 void motion (int x, int y) {
   camera.handleMouseMoveEvent (x, y);
+
 }
 
 void idle () {

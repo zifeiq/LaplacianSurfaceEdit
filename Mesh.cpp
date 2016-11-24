@@ -84,6 +84,7 @@ void Mesh::loadOBJ(const std::string & filename){
     if (!in) 
         exit (1);
     string line;
+    Vec3f vp(0,0,0);
     while(getline(in,line)){
         istringstream iss(line.substr(1));
         switch(line[0]){
@@ -92,6 +93,7 @@ void Mesh::loadOBJ(const std::string & filename){
             case 'v':
             V.push_back(Vertex());
             iss >> V.back().p[0] >> V.back().p[1] >> V.back().p[2] ;
+            if(V.back().p[1]>vp[1]) vp = V.back().p;
             break;
             case 'f':
             T.push_back(Triangle());
@@ -105,6 +107,7 @@ void Mesh::loadOBJ(const std::string & filename){
         }
 
     }
+    cout << "[Debug] The point with biggest y is : (" << vp[0] << "," << vp[1] << "," << vp[2] << endl;
     in.close ();
     centerAndScaleToUnit ();
     recomputeNormals ();

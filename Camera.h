@@ -74,6 +74,7 @@ private:
   int lastX, lastY, lastZoom;
 };
 
+
 // Some Emacs-Hints -- please don't remove:
 //
 //  Local Variables:
