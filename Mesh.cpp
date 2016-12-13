@@ -21,6 +21,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <sstream>
+#include <queue>
 
 using namespace std;
 
@@ -76,7 +77,6 @@ void Mesh::centerAndScaleToUnit () {
         V[i].p = (V[i].p - c) / maxD;
 }
 
-
 // written by Zifei QIAN
 void Mesh::loadOBJ(const std::string & filename){
     cout << "[Debug] Loading OBJ File " << filename << endl;
@@ -101,6 +101,7 @@ void Mesh::loadOBJ(const std::string & filename){
             T.back().v[0]-=1;
             T.back().v[1]-=1;
             T.back().v[2]-=1;
+            addNeighbor(T.back());
             break;
             default:
             break;
@@ -111,4 +112,57 @@ void Mesh::loadOBJ(const std::string & filename){
     in.close ();
     centerAndScaleToUnit ();
     recomputeNormals ();
+}
+
+void Mesh::addNeighbor(Triangle& t){
+    V[t.v[0]].addNeighbor(&V[t.v[1]]);
+    V[t.v[0]].addNeighbor(&V[t.v[2]]);
+    V[t.v[1]].addNeighbor(&V[t.v[0]]);
+    V[t.v[1]].addNeighbor(&V[t.v[2]]);
+    V[t.v[2]].addNeighbor(&V[t.v[0]]);
+    V[t.v[2]].addNeighbor(&V[t.v[1]]);
+}
+
+void Mesh::selectPart(Vec3f p, float range, bool selectMode){
+    float minD = 100;
+    int selectedV;
+    for(int i=0; i<V.size(); i++){
+        float d = dist(V[i].p,p);
+        if(d<minD){
+            minD = d;
+            selectedV = i; 
+        }
+    }
+    cout << "Min distance: " << minD << endl;
+    if(minD > 5) return;
+    queue<Vertex*> q;
+    q.push(&V[selectedV]);
+    while(!q.empty()){
+        Vertex* v = q.front();
+        q.pop();
+        v->isSelected = true;
+        if(selectMode){
+            interests.push_back(v);    
+        }
+        else{
+            v->isHandle = true;
+            handle.push_back(v);
+        }
+        
+        for(int i=0; i<v->neighbors.size(); i++){
+            if(dist(v->neighbors[i]->p, V[selectedV].p)<range){
+                if(!v->neighbors[i]->isSelected ){
+                    q.push(v->neighbors[i]);
+                }
+            }
+            else{
+                anchor.push_back(v);
+            }
+        }
+    }
+
+
+}
+
+void Mesh::laplacianTransform(Vec3f v_prime){
 }

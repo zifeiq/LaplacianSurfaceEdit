@@ -39,6 +39,12 @@ static bool fullScreen = false;
 static Camera camera;
 static Mesh mesh;
 
+// lorsque laplacianMode == false && selectMode == true, on définit la région d'intérêt
+// et si selectMode == false, on définira le handle
+// si laplacianMode == true, on applique la transformation chaque fois on clique sur l'écran
+bool selectMode;
+bool laplacianMode;
+
 void printUsage () {
   std::cerr << std::endl 
 	    << appTitle << std::endl
@@ -77,6 +83,8 @@ glEnable ( GL_COLOR_MATERIAL );
   camera.resize (DEFAULT_SCREENWIDTH, DEFAULT_SCREENHEIGHT); // Setup the camera
   mesh.loadOBJ (modelFilename); // Load a mesh file
 
+  selectMode = true;
+  laplacianMode = false;
 }
 
 void drawScene () {
@@ -85,14 +93,15 @@ void drawScene () {
   for (unsigned int i = 0; i < mesh.T.size (); i++) 
     for (unsigned int j = 0; j < 3; j++) {
       const Vertex & v = mesh.V[mesh.T[i].v[j]];
-      if(v.p[1]<0){
+      if(v.isHandle){
         glColor3f(1,0,0);
+      }
+      else if(v.isSelected){
+        glColor3f(0,1,0);
       }
       else{
         glColor3f(1,1,1);
       }
-
-
       glNormal3f (v.n[0], v.n[1], v.n[2]); // Specifies current normal vertex   
       glVertex3f (v.p[0], v.p[1], v.p[2]); // Emit a vertex (one triangle is emitted each time 3 vertices are emitted)
     }
@@ -129,6 +138,13 @@ Vec3f screenTo3D(int x, int y){
   GLdouble objx,objy,objz;
   gluUnProject(x, y, z, modelview, projection, viewport, &objx,&objy,&objz);
   cout << "[Debug] Click point in the model: (" << objx << "," << objy << "," << objz<<")" << endl;
+  if(!laplacianMode){
+    mesh.selectPart(Vec3f(objx,objy,objz),0.1,selectMode);  
+  }
+  else{
+    mesh.laplacianTransform(Vec3f(objx,objy,objz));
+  }
+  
 }
 void key (unsigned char keyPressed, int x, int y) {
   switch (keyPressed) {
@@ -145,6 +161,19 @@ void key (unsigned char keyPressed, int x, int y) {
   case 27:
     exit (0);
     break;
+  case 's':
+    cout << "Selection Mode" << endl;
+    selectMode = true;
+    laplacianMode = false;
+    break;
+  case 'h':
+    cout << "Handle mode" << endl;
+    selectMode = false;
+    laplacianMode = false;
+    break;
+  case 'l':
+    laplacianMode = true;
+    break;
   case 'w':
     GLint mode[2];
     glGetIntegerv (GL_POLYGON_MODE, mode);
@@ -159,7 +188,10 @@ void key (unsigned char keyPressed, int x, int y) {
 
 void mouse (int button, int state, int x, int y) {
   camera.handleMouseClickEvent (button, state, x, y);
-  screenTo3D(x,y);
+  if(state == GLUT_DOWN){
+    screenTo3D(x,y);
+  }
+  
   
 }
 

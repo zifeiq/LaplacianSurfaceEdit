@@ -20,6 +20,7 @@
 #include <cmath>
 #include <vector>
 #include "Vec3.h"
+#include <algorithm>
 
 /// A simple vertex class storing position and normal
 class Vertex {
@@ -29,6 +30,17 @@ public:
     inline virtual ~Vertex () {}
     Vec3f p;
     Vec3f n;
+    bool isSelected;
+    bool isHandle;
+
+    std::vector<Vertex*> neighbors;
+
+    void addNeighbor(Vertex* v){
+        auto it = find(neighbors.begin(), neighbors.end(), v);
+        if(it==neighbors.end()){
+            neighbors.push_back(v);    
+        }
+    }
 };
 
 /// A Triangle class expressed as a triplet of indices (over an external vertex list)
@@ -63,6 +75,9 @@ public:
 	std::vector<Vertex> V;
 	std::vector<Triangle> T;
 
+    std::vector<Vertex*> interests;
+    std::vector<Vertex*> handle;
+    std::vector<Vertex*> anchor;
     /// Loads the mesh from a <file>.off
 	void loadOFF (const std::string & filename);
 
@@ -74,4 +89,12 @@ public:
 
     /// scale to the unit cube and center at original
     void centerAndScaleToUnit ();
+
+    /// auxiliary function for selecting the region d'interet
+    void addNeighbor(Triangle& t);
+
+    /// To select a range decided by d of points centered by p
+    void selectPart(Vec3f p, float d, bool handle);
+
+    void laplacianTransform(Vec3f v_prime);
 };
