@@ -141,10 +141,8 @@ void Mesh::selectPart(Vec3f p, float range, bool selectMode){
         Vertex* v = q.front();
         q.pop();
         v->isSelected = true;
-        if(selectMode){
-            interests.push_back(v);    
-        }
-        else{
+        interests.push_back(v);    
+        if(!selectMode){
             v->isHandle = true;
             handle.push_back(v);
         }
@@ -155,14 +153,26 @@ void Mesh::selectPart(Vec3f p, float range, bool selectMode){
                     q.push(v->neighbors[i]);
                 }
             }
-            else{
+        }
+    }
+}
+
+void Mesh::calculateAnchor(){
+    anchor.clear();
+    for(int i=0; i<interests.size(); i++){
+        for(int j=0; j<interests[i]->neighbors.size(); j++){
+            Vertex* v = interests[i]->neighbors[j];
+            if(!v->isSelected){
                 anchor.push_back(v);
+                v->isAnchor = true;
             }
         }
     }
-
-
 }
 
 void Mesh::laplacianTransform(Vec3f v_prime){
+    if(anchor.empty()){
+        calculateAnchor();    
+    }
+    
 }

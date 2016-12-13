@@ -32,6 +32,7 @@ public:
     Vec3f n;
     bool isSelected;
     bool isHandle;
+    bool isAnchor;
 
     std::vector<Vertex*> neighbors;
 
@@ -78,6 +79,7 @@ public:
     std::vector<Vertex*> interests;
     std::vector<Vertex*> handle;
     std::vector<Vertex*> anchor;
+
     /// Loads the mesh from a <file>.off
 	void loadOFF (const std::string & filename);
 
@@ -96,5 +98,9 @@ public:
     /// To select a range decided by d of points centered by p
     void selectPart(Vec3f p, float d, bool handle);
 
+    /// auxiliary function : to calculated the border of the ROI
+    void calculateAnchor();
+
+    /// main function of the project
     void laplacianTransform(Vec3f v_prime);
 };

@@ -93,7 +93,7 @@ void drawScene () {
   for (unsigned int i = 0; i < mesh.T.size (); i++) 
     for (unsigned int j = 0; j < 3; j++) {
       const Vertex & v = mesh.V[mesh.T[i].v[j]];
-      if(v.isHandle){
+      if(v.isHandle || v.isAnchor){
         glColor3f(1,0,0);
       }
       else if(v.isSelected){
