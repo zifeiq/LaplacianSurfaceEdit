@@ -23,6 +23,8 @@
 #include <sstream>
 #include <queue>
 
+#include "LaplacianEditing.h"
+
 using namespace std;
 
 void Mesh::loadOFF (const std::string & filename) {
@@ -108,7 +110,7 @@ void Mesh::loadOBJ(const std::string & filename){
         }
 
     }
-    cout << "[Debug] The point with biggest y is : (" << vp[0] << "," << vp[1] << "," << vp[2] << endl;
+
     in.close ();
     centerAndScaleToUnit ();
     recomputeNormals ();
@@ -121,6 +123,14 @@ void Mesh::addNeighbor(Triangle& t){
     V[t.v[1]].addNeighbor(&V[t.v[2]]);
     V[t.v[2]].addNeighbor(&V[t.v[0]]);
     V[t.v[2]].addNeighbor(&V[t.v[1]]);
+
+
+    V[t.v[0]].addNeighbor(t.v[1]);
+    V[t.v[0]].addNeighbor(t.v[2]);
+    V[t.v[1]].addNeighbor(t.v[0]);
+    V[t.v[1]].addNeighbor(t.v[2]);
+    V[t.v[2]].addNeighbor(t.v[0]);
+    V[t.v[2]].addNeighbor(t.v[1]);
 }
 
 void Mesh::selectPart(Vec3f p, float range, bool selectMode){
@@ -170,9 +180,10 @@ void Mesh::calculateAnchor(){
     }
 }
 
+
 void Mesh::laplacianTransform(Vec3f v_prime){
     if(anchor.empty()){
         calculateAnchor();    
     }
-    
+    LaplacianEditing lp;
 }

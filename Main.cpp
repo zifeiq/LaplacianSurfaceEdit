@@ -9,8 +9,8 @@
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
-#include <GL/glut.h>
 #include <GL/glew.h>
+#include <GL/glut.h>
 #endif
 
 #include <iostream>
@@ -93,14 +93,12 @@ void drawScene () {
   for (unsigned int i = 0; i < mesh.T.size (); i++) 
     for (unsigned int j = 0; j < 3; j++) {
       const Vertex & v = mesh.V[mesh.T[i].v[j]];
+        glColor3f(1,1,1);
       if(v.isHandle || v.isAnchor){
         glColor3f(1,0,0);
       }
       else if(v.isSelected){
         glColor3f(0,1,0);
-      }
-      else{
-        glColor3f(1,1,1);
       }
       glNormal3f (v.n[0], v.n[1], v.n[2]); // Specifies current normal vertex   
       glVertex3f (v.p[0], v.p[1], v.p[2]); // Emit a vertex (one triangle is emitted each time 3 vertices are emitted)

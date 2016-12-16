@@ -25,8 +25,8 @@
 /// A simple vertex class storing position and normal
 class Vertex {
 public:
-    inline Vertex () {}
-    inline Vertex (const Vec3f & p, const Vec3f & n) : p (p), n (n) {}
+    inline Vertex () {isSelected=false; isHandle=false; isAnchor=false;}
+    inline Vertex (const Vec3f & p, const Vec3f & n) : p (p), n (n) {isSelected=false; isHandle=false; isAnchor=false;}
     inline virtual ~Vertex () {}
     Vec3f p;
     Vec3f n;
@@ -35,12 +35,20 @@ public:
     bool isAnchor;
 
     std::vector<Vertex*> neighbors;
+    std::vector<int> neighbors_id;
 
     void addNeighbor(Vertex* v){
         auto it = find(neighbors.begin(), neighbors.end(), v);
         if(it==neighbors.end()){
             neighbors.push_back(v);    
         }
+    }
+
+    void addNeighbor(int i){
+      auto it = find(neighbors_id.begin(), neighbors_id.end(), i);
+      if(it==neighbors_id.end()){
+        neighbors_id.push_back(i);
+      }
     }
 };
 
