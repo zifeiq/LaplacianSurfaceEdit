@@ -143,7 +143,7 @@ void Mesh::selectPart(Vec3f p, float range, bool selectMode){
             selectedV = i; 
         }
     }
-    cout << "Min distance: " << minD << endl;
+    // cout << "Min distance: " << minD << endl;
     if(minD > 5) return;
     queue<Vertex*> q;
     q.push(&V[selectedV]);
@@ -185,5 +185,5 @@ void Mesh::laplacianTransform(Vec3f v_prime){
     if(anchor.empty()){
         calculateAnchor();    
     }
-    LaplacianEditing lp;
+    LaplacianEditing lp(*this);
 }

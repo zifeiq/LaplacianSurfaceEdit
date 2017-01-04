@@ -135,7 +135,7 @@ Vec3f screenTo3D(int x, int y){
 
   GLdouble objx,objy,objz;
   gluUnProject(x, y, z, modelview, projection, viewport, &objx,&objy,&objz);
-  cout << "[Debug] Click point in the model: (" << objx << "," << objy << "," << objz<<")" << endl;
+  // cout << "[Debug] Click point in the model: (" << objx << "," << objy << "," << objz<<")" << endl;
   if(!laplacianMode){
     mesh.selectPart(Vec3f(objx,objy,objz),0.1,selectMode);  
   }
