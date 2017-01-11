@@ -34,21 +34,14 @@ public:
     bool isHandle;
     bool isAnchor;
 
+    int id;
     std::vector<Vertex*> neighbors;
-    std::vector<int> neighbors_id;
 
     void addNeighbor(Vertex* v){
         auto it = find(neighbors.begin(), neighbors.end(), v);
         if(it==neighbors.end()){
             neighbors.push_back(v);    
         }
-    }
-
-    void addNeighbor(int i){
-      auto it = find(neighbors_id.begin(), neighbors_id.end(), i);
-      if(it==neighbors_id.end()){
-        neighbors_id.push_back(i);
-      }
     }
 };
 
@@ -110,5 +103,10 @@ public:
     void calculateAnchor();
 
     /// main function of the project
-    void laplacianTransform(Vec3f v_prime);
+    void laplacianTransform();
+
+    // save the info of ROI / anchor into file
+    void save();
+
+    void setFromFile();
 };

@@ -23,7 +23,7 @@
 #include <sstream>
 #include <queue>
 
-#include "LaplacianEditing.h"
+
 
 using namespace std;
 
@@ -88,6 +88,7 @@ void Mesh::loadOBJ(const std::string & filename){
     string line;
     Vec3f vp(0,0,0);
     while(getline(in,line)){
+        if(line.size()==0) continue;
         istringstream iss(line.substr(1));
         switch(line[0]){
             case '#':
@@ -95,7 +96,7 @@ void Mesh::loadOBJ(const std::string & filename){
             case 'v':
             V.push_back(Vertex());
             iss >> V.back().p[0] >> V.back().p[1] >> V.back().p[2] ;
-            if(V.back().p[1]>vp[1]) vp = V.back().p;
+            V.back().id = V.size()-1;
             break;
             case 'f':
             T.push_back(Triangle());
@@ -123,14 +124,6 @@ void Mesh::addNeighbor(Triangle& t){
     V[t.v[1]].addNeighbor(&V[t.v[2]]);
     V[t.v[2]].addNeighbor(&V[t.v[0]]);
     V[t.v[2]].addNeighbor(&V[t.v[1]]);
-
-
-    V[t.v[0]].addNeighbor(t.v[1]);
-    V[t.v[0]].addNeighbor(t.v[2]);
-    V[t.v[1]].addNeighbor(t.v[0]);
-    V[t.v[1]].addNeighbor(t.v[2]);
-    V[t.v[2]].addNeighbor(t.v[0]);
-    V[t.v[2]].addNeighbor(t.v[1]);
 }
 
 void Mesh::selectPart(Vec3f p, float range, bool selectMode){
@@ -150,9 +143,12 @@ void Mesh::selectPart(Vec3f p, float range, bool selectMode){
     while(!q.empty()){
         Vertex* v = q.front();
         q.pop();
-        v->isSelected = true;
-        interests.push_back(v);    
-        if(!selectMode){
+        if(!v->isSelected){
+            v->isSelected = true;    
+            interests.push_back(v);  
+        }
+
+        if(!selectMode && !v->isHandle){
             v->isHandle = true;
             handle.push_back(v);
         }
@@ -172,18 +168,104 @@ void Mesh::calculateAnchor(){
     for(int i=0; i<interests.size(); i++){
         for(int j=0; j<interests[i]->neighbors.size(); j++){
             Vertex* v = interests[i]->neighbors[j];
-            if(!v->isSelected){
+            if(!v->isSelected && !v->isAnchor){
                 anchor.push_back(v);
                 v->isAnchor = true;
+                v->isSelected = true;
+                // interests.push_back(v);
             }
         }
     }
+    for(auto v:anchor){
+        interests.push_back(v);
+    }
 }
 
-
-void Mesh::laplacianTransform(Vec3f v_prime){
-    if(anchor.empty()){
-        calculateAnchor();    
+void Mesh::save(){
+    ofstream fanchor;
+    fanchor.open("anchor.txt");
+    fanchor << anchor.size()<< endl;
+    for(auto v:anchor){
+        fanchor << v->id << endl;
     }
-    LaplacianEditing lp(*this);
+    fanchor.close();
+
+    ofstream fhandle;
+    fhandle.open("handle.txt");
+    fhandle << handle.size() << endl;
+    for(auto v:handle){
+        fhandle << v->id << endl;
+    }
+    fhandle.close();
+
+    ofstream froi;
+    froi.open("roi.txt");
+    froi << interests.size() << endl;
+    for(auto v:interests){
+        froi << v->id << endl;
+    }
+    froi.close();
+}
+
+void Mesh::setFromFile(){
+    cout << "[Debug] Reading points from file ... " << endl;
+    ifstream fanchor;
+    fanchor.open("anchor.txt");
+    if(!fanchor){
+        cout << "anchor.txt does not exist!" << endl;
+        exit(0);
+    }
+    int n;
+    fanchor >> n;
+    for(int i=0; i<n; i++){
+        int id;
+        fanchor >> id;
+        anchor.push_back(&V[id]);
+        V[id].isAnchor = true;
+    }
+    fanchor.close();
+
+    ifstream fhandle;
+    fhandle.open("handle.txt");
+    if(!fhandle){
+        cout << "anchor.txt does not exist!" << endl;
+        exit(0);
+    }
+    fhandle >> n;
+    for(int i=0; i<n; i++){
+        int id;
+        fhandle >> id;
+        V[id].isHandle = true;
+        handle.push_back(&V[id]);
+    }
+    fhandle.close();
+
+    ifstream froi;
+    froi.open("roi.txt");
+    if(!froi){
+        cout << "roi.txt does not exist!" << endl;
+        exit(0);
+    }
+    froi >> n;
+    for(int i=0; i<n; i++){
+        int id;
+        froi >> id;
+        V[id].isSelected = true;
+        interests.push_back(&V[id]);
+    }
+    froi.close();
+
+}
+
+void Mesh::laplacianTransform(){
+    if(anchor.empty()){
+        if(interests.empty()){
+            setFromFile();
+        }
+        else{
+            calculateAnchor();        
+        }
+        
+    }
+    save();
 }

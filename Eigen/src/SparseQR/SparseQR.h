@@ -11,6 +11,8 @@
 #ifndef EIGEN_SPARSE_QR_H
 #define EIGEN_SPARSE_QR_H
 
+#include <iostream>
+
 namespace Eigen {
 
 template<typename MatrixType, typename OrderingType> class SparseQR;
@@ -114,6 +116,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     void compute(const MatrixType& mat)
     {
       analyzePattern(mat);
+      std::cout << "SparseQR analyze pattern finished" << std::endl;
       factorize(mat);
     }
     void analyzePattern(const MatrixType& mat);
@@ -348,6 +351,8 @@ template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
 {
   using std::abs;
+  using std::cout;
+  using std::endl;
   
   eigen_assert(m_analysisIsok && "analyzePattern() should be called before this step");
   StorageIndex m = StorageIndex(mat.rows());
@@ -362,6 +367,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   m_R.setZero();
   m_Q.setZero();
   m_pmat = mat;
+
   if(!m_isEtreeOk)
   {
     m_outputPerm_c = m_perm_c.inverse();
@@ -404,7 +410,6 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       max2Norm = RealScalar(1);
     pivotThreshold = 20 * (m + n) * max2Norm * NumTraits<RealScalar>::epsilon();
   }
-  
   // Initialize the numerical permutation
   m_pivotperm.setIdentity(n);
   
@@ -414,6 +419,9 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   // Left looking rank-revealing QR factorization: compute a column of R and Q at a time
   for (StorageIndex col = 0; col < n; ++col)
   {
+    if(col == n/5) cout << "1/5 way there!" << endl;
+    if(col == n/2) cout << "half way there!" << endl;
+    if(col == n*4/5) cout << "80%% !!!!!" << endl;
     mark.setConstant(-1);
     m_R.startVec(col);
     mark(nonzeroCol) = col;

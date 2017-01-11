@@ -20,16 +20,18 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
-
+#include <fstream>
+#include <sstream>
 #include "Vec3.h"
 #include "Camera.h"
 #include "Mesh.h"
 
+#include "LaplacianEditing.h"
 using namespace std;
 
 static const unsigned int DEFAULT_SCREENWIDTH = 1024;
 static const unsigned int DEFAULT_SCREENHEIGHT = 768;
-static const string DEFAULT_MESH_FILE ("../bunny.obj");
+static const string DEFAULT_MESH_FILE ("../Wolf.obj");
 
 static string appTitle ("Informatique Graphique & Realite Virtuelle - Travaux Pratiques - Shaders");
 static GLint window;
@@ -44,6 +46,7 @@ static Mesh mesh;
 // si laplacianMode == true, on applique la transformation chaque fois on clique sur l'écran
 bool selectMode;
 bool laplacianMode;
+LaplacianEditing lp;
 
 void printUsage () {
   std::cerr << std::endl 
@@ -83,6 +86,19 @@ glEnable ( GL_COLOR_MATERIAL );
   camera.resize (DEFAULT_SCREENWIDTH, DEFAULT_SCREENHEIGHT); // Setup the camera
   mesh.loadOBJ (modelFilename); // Load a mesh file
 
+  // uncomment the following lines to examine the result
+  // ifstream f("result.txt");
+  // string line;
+  // int i=0;
+  // while(getline(f,line)){
+  //   stringstream ss(line);
+  //   char tmp;
+  //   ss >> mesh.V[i].p[0] >> tmp >> mesh.V[i].p[1] >> tmp >> mesh.V[i].p[2];
+  //   i++;
+  // }
+  // mesh.centerAndScaleToUnit();
+
+  
   selectMode = true;
   laplacianMode = false;
 }
@@ -140,7 +156,9 @@ Vec3f screenTo3D(int x, int y){
     mesh.selectPart(Vec3f(objx,objy,objz),0.1,selectMode);  
   }
   else{
-    mesh.laplacianTransform(Vec3f(objx,objy,objz));
+    
+    lp.translate(Vec3f(objx,objy,objz));
+    laplacianMode=false;
   }
   
 }
@@ -171,6 +189,8 @@ void key (unsigned char keyPressed, int x, int y) {
     break;
   case 'l':
     laplacianMode = true;
+    mesh.laplacianTransform();
+    lp.initialize(mesh);
     break;
   case 'w':
     GLint mode[2];
@@ -189,7 +209,6 @@ void mouse (int button, int state, int x, int y) {
   if(state == GLUT_DOWN){
     screenTo3D(x,y);
   }
-  
   
 }
 
